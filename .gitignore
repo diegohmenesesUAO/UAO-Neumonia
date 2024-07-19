@@ -4,3 +4,5 @@ mlruns/0/00a2bbf0502a46429d9f727422c99917/artifacts/model/data/model/variables/v
 # Ignorar el entorno virtual
 myenv39/myenv39/
 mlruns/
+myenv39/
+mlruns/
