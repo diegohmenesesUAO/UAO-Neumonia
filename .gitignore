@@ -1,0 +1,6 @@
+# Ignorar el archivo grande específico
+mlruns/0/00a2bbf0502a46429d9f727422c99917/artifacts/model/data/model/variables/variables.data-00000-of-00001
+
+# Ignorar el entorno virtual
+myenv39/myenv39/
+mlruns/
