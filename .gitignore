@@ -1,5 +1,3 @@
 # Ignorar el entorno virtual
 myenv39/
-
-# Ignorar archivos de modelos grandes
-mlruns/
+model/

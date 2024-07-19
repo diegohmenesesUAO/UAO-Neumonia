@@ -13,19 +13,21 @@ import tkcap
 import img2pdf
 import numpy as np
 import time
+
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-import tensorflow.keras.backend as K
+import keras.backend as K
 tf.compat.v1.disable_eager_execution()
 tf.compat.v1.experimental.output_all_intermediates(True)
+
 import cv2
 import pydicom
-import mlflow.keras
+
 
 
 def model_fun():
-    model_uri = "models:/PneumoniaDetectionModel/1"
-    model = mlflow.keras.load_model(model_uri)
+    # Cargar el modelo desde la carpeta model
+    model = load_model('model/conv_MLP_84.h5')
     return model
 
 def grad_cam(array):
@@ -77,15 +79,23 @@ def predict(array):
     return (label, proba, heatmap)
 
 
+
 def read_dicom_file(path):
-    img = pydicom.dcmread(path)  # Usar pydicom.dcmread en lugar de dicom.read_file
-    img_array = img.pixel_array
-    img2show = Image.fromarray(img_array)
-    img2 = img_array.astype(float)
-    img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
-    img2 = np.uint8(img2)
-    img_RGB = cv2.cvtColor(img2, cv2.COLOR_GRAY2RGB)
-    return img_RGB, img2show
+    try:
+        img = pydicom.dcmread(path, force=True)  # Usar force=True
+        if 'PixelData' not in img:
+            raise pydicom.errors.InvalidDicomError("El archivo no contiene datos de píxeles.")
+        
+        img_array = img.pixel_array
+        img2show = Image.fromarray(img_array)
+        img2 = img_array.astype(float)
+        img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
+        img2 = np.uint8(img2)
+        img_RGB = cv2.cvtColor(img2, cv2.COLOR_GRAY2RGB)
+        return img_RGB, img2show
+    except (pydicom.errors.InvalidDicomError, AttributeError) as e:
+        showinfo(title="Error", message=f"El archivo no es un DICOM válido: {str(e)}")
+        return None, None
 
 
 def read_jpg_file(path):
@@ -97,6 +107,18 @@ def read_jpg_file(path):
     img2 = np.uint8(img2)
     return img2, img2show
 
+def read_image_file(path):
+    try:
+        img = cv2.imread(path)
+        img_array = np.asarray(img)
+        img2show = Image.fromarray(img_array)
+        img2 = img_array.astype(float)
+        img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
+        img2 = np.uint8(img2)
+        return img2, img2show
+    except Exception as e:
+        showinfo(title="Error", message=f"No se pudo leer la imagen: {str(e)}")
+        return None, None
 
 def preprocess(array):
     array = cv2.resize(array, (512, 512))
@@ -204,22 +226,23 @@ class App:
         ),
     )
      if filepath:
-        try:
-            if filepath.endswith('.dcm'):
-                self.array, img2show = read_dicom_file(filepath)
-            else:
-                self.array, img2show = read_jpg_file(filepath)
-            self.img1 = img2show.resize((250, 250), Image.LANCZOS)
+        if filepath.lower().endswith('.dcm'):
+            self.array, img2show = read_dicom_file(filepath)
+        else:
+            self.array, img2show = read_image_file(filepath)
+        
+        if self.array is not None and img2show is not None:  # Verificar si se cargó correctamente
+            self.img1 = img2show.resize((250, 250), Image.LANCZOS)  # Reemplazar ANTIALIAS por LANCZOS
             self.img1 = ImageTk.PhotoImage(self.img1)
             self.text_img1.image_create(END, image=self.img1)
             self.button1["state"] = "enabled"
-        except Exception as e:
-            showinfo(title="Error", message=str(e))
+
+
 
     def run_model(self):
         self.label, self.proba, self.heatmap = predict(self.array)
         self.img2 = Image.fromarray(self.heatmap)
-        self.img2 = self.img2.resize((250, 250), Image.LANCZOS)
+        self.img2 = self.img2.resize((250, 250), Image.LANCZOS)  # Reemplazar ANTIALIAS por LANCZOS
         self.img2 = ImageTk.PhotoImage(self.img2)
         print("OK")
         self.text_img2.image_create(END, image=self.img2)
