@@ -1,0 +1,17 @@
+# Ignorar archivos y directorios innecesarios
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.tmp
+*.bak
+*.swp
+.git
+.gitignore
+.vscode
+.idea
+tests/test_data/*
+*.csv
+*.pdf
+myenv39

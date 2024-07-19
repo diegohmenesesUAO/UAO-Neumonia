@@ -9,23 +9,20 @@ import getpass
 from PIL import ImageTk, Image
 import csv
 import pyautogui
-import os
 import tkcap
 import img2pdf
 import numpy as np
 import time
-
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-import keras.backend as K
+import tensorflow.keras.backend as K
+tf.compat.v1.disable_eager_execution()
+tf.compat.v1.experimental.output_all_intermediates(True)
 import cv2
 import pydicom
 
-tf.compat.v1.disable_eager_execution()
-tf.compat.v1.experimental.output_all_intermediates(True)
-
 def model_fun():
-    model_path = "model/conv_MLP_84.h5"
+    model_path = "model/conv_MLP_84.h5"  # Reemplaza esto con la ruta correcta al archivo .h5
     model = load_model(model_path)
     return model
 
@@ -79,20 +76,14 @@ def predict(array):
 
 
 def read_dicom_file(path):
-    try:
-        img = pydicom.dcmread(path, force=True)  # Usar pydicom.dcmread con force=True
-        if 'TransferSyntaxUID' not in img.file_meta:
-            raise AttributeError("El archivo DICOM no tiene 'TransferSyntaxUID'")
-        img_array = img.pixel_array
-        img2show = Image.fromarray(img_array)
-        img2 = img_array.astype(float)
-        img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
-        img2 = np.uint8(img2)
-        img_RGB = cv2.cvtColor(img2, cv2.COLOR_GRAY2RGB)
-        return img_RGB, img2show
-    except Exception as e:
-        print(f"Error al leer el archivo DICOM: {e}")
-        return None, None
+    img = pydicom.dcmread(path)  # Usar pydicom.dcmread en lugar de dicom.read_file
+    img_array = img.pixel_array
+    img2show = Image.fromarray(img_array)
+    img2 = img_array.astype(float)
+    img2 = (np.maximum(img2, 0) / img2.max()) * 255.0
+    img2 = np.uint8(img2)
+    img_RGB = cv2.cvtColor(img2, cv2.COLOR_GRAY2RGB)
+    return img_RGB, img2show
 
 
 def read_jpg_file(path):
@@ -211,23 +202,22 @@ class App:
         ),
     )
      if filepath:
-        if filepath.endswith(".dcm"):
-            self.array, img2show = read_dicom_file(filepath)
-        else:
-            self.array, img2show = read_jpg_file(filepath)
-
-        if self.array is not None and img2show is not None:
-            self.img1 = img2show.resize((250, 250), Image.Resampling.LANCZOS)
+        try:
+            if filepath.endswith('.dcm'):
+                self.array, img2show = read_dicom_file(filepath)
+            else:
+                self.array, img2show = read_jpg_file(filepath)
+            self.img1 = img2show.resize((250, 250), Image.LANCZOS)
             self.img1 = ImageTk.PhotoImage(self.img1)
             self.text_img1.image_create(END, image=self.img1)
             self.button1["state"] = "enabled"
-        else:
-            print("No se pudo leer el archivo de imagen")
+        except Exception as e:
+            showinfo(title="Error", message=str(e))
 
     def run_model(self):
         self.label, self.proba, self.heatmap = predict(self.array)
         self.img2 = Image.fromarray(self.heatmap)
-        self.img2 = self.img2.resize((250, 250), Image.Resampling.LANCZOS)
+        self.img2 = self.img2.resize((250, 250), Image.LANCZOS)
         self.img2 = ImageTk.PhotoImage(self.img2)
         print("OK")
         self.text_img2.image_create(END, image=self.img2)
@@ -243,31 +233,15 @@ class App:
             showinfo(title="Guardar", message="Los datos se guardaron con éxito.")
 
     def create_pdf(self):
-     try:
-        print("Inicializando pyautogui")
-        
-        ID = "Reporte" + str(self.reportID) + ".png"
-        print(f"Intentando capturar pantalla y guardar como {ID}")
-        
-        # Capturar la pantalla completa y guardar la imagen
-        screenshot = pyautogui.screenshot()
-        screenshot.save(ID)
-        
-        # Verificar si el archivo se ha creado
-        if os.path.exists(ID):
-            print(f"Archivo capturado: {ID}")  # Mensaje de depuración
-            img = Image.open(ID)
-            img = img.convert("RGB")
-            pdf_path = r"Reporte" + str(self.reportID) + ".pdf"
-            img.save(pdf_path)
-            self.reportID += 1
-            showinfo(title="PDF", message="El PDF fue generado con éxito.")
-        else:
-            print("La captura de pantalla falló.")
-     except Exception as e:
-        print(f"Error al crear el PDF: {e}")
-
-
+        cap = tkcap.CAP(self.root)
+        ID = "Reporte" + str(self.reportID) + ".jpg"
+        img = cap.capture(ID)
+        img = Image.open(ID)
+        img = img.convert("RGB")
+        pdf_path = r"Reporte" + str(self.reportID) + ".pdf"
+        img.save(pdf_path)
+        self.reportID += 1
+        showinfo(title="PDF", message="El PDF fue generado con éxito.")
 
     def delete(self):
         answer = askokcancel(
