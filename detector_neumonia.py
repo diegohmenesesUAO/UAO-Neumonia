@@ -22,8 +22,22 @@ tf.compat.v1.experimental.output_all_intermediates(True)
 
 import cv2
 import pydicom
+import gdown
+import os
+import shutil
 
+def download_model():
+    model_path = 'model/conv_MLP_84.h5'
+    if not os.path.exists(model_path):
+        url = 'https://drive.google.com/uc?id=1k-lm8w6r1I_7R8-dy9MbIQYiTxV4QiZc'  # Enlace directo al archivo
+        temp_path = 'model/conv_MLP_84.h5.part'
+        gdown.download(url, temp_path, quiet=False)
+        shutil.move(temp_path, model_path)
+    else:
+        print("Model already exists. Skipping download.")
 
+# Descargar el modelo si no está presente
+download_model()
 
 def model_fun():
     # Cargar el modelo desde la carpeta model
