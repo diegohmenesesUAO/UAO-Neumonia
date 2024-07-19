@@ -20,10 +20,12 @@ tf.compat.v1.disable_eager_execution()
 tf.compat.v1.experimental.output_all_intermediates(True)
 import cv2
 import pydicom
+import mlflow.keras
+
 
 def model_fun():
-    model_path = "model/conv_MLP_84.h5"  # Reemplaza esto con la ruta correcta al archivo .h5
-    model = load_model(model_path)
+    model_uri = "models:/PneumoniaDetectionModel/1"
+    model = mlflow.keras.load_model(model_uri)
     return model
 
 def grad_cam(array):

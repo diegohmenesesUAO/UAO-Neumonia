@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1721408298352
+current_stage: None
+description: null
+last_updated_timestamp: 1721408298352
+name: PneumoniaDetectionModel
+run_id: 7200b98ed5c940cf83ceb10defc81af6
+run_link: null
+source: file:///Users/diegomeneses/Documents/Personal/2024/UAO/desarrollo_proyectos_software/Repositorio/UAO-Neumonia/mlruns/0/7200b98ed5c940cf83ceb10defc81af6/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///Users/diegomeneses/Documents/Personal/2024/UAO/desarrollo_proyectos_software/Repositorio/UAO-Neumonia/mlruns/0/7200b98ed5c940cf83ceb10defc81af6/artifacts/model
+user_id: null
+version: 1
