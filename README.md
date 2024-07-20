@@ -36,7 +36,7 @@ docker build -t detector_neumonia .
      -v /tmp/.X11-unix:/tmp/.X11-unix \
      detector_neumonia
 
-### Implementación de Alta cohesión y bajo acomplamiento
+## Implementación de Alta cohesión y bajo acomplamiento
 1.	Alta cohesión:
 - Clase ModelHandler: Se encarga de todas las operaciones relacionadas con el modelo de TensorFlow, incluyendo la predicción y la generación de Grad-CAM.
 - Clase ImageProcessor: Maneja todas las tareas relacionadas con la lectura y preprocesamiento de imágenes.
